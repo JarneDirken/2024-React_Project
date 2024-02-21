@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using AnomalyTrackerBackend.API.Dto;
 using AnomalyTrackerBackend.DAL;
 using AnomalyTrackerBackend.DAL.Entity;
@@ -100,18 +100,16 @@ namespace AnomalyTrackerBackend.API.Controllers
             DateTime? selectedStartDate = null,
             DateTime? selectedEndDate = null)
         {
-
+            // make a list of the string that is reiceved by splitsing it based on the ','
             List<string> assetTypesList = !string.IsNullOrEmpty(assetTypes) ? assetTypes.Split(',').ToList() : null;
 
             var assets = await _context.Assets
                 .Include(a => a.AssetType)
-                //.Where(a => a.IsSolved == anomalyStatus)
-                //.Where(a => a.IsFlagged == anomalyFlag)
-                //.Where(a => a.TimeStamp >= utcStartDateTime && a.TimeStamp <= utcEndDateTime)
-                //.Where(a => a.TimeStamp >= selectedStartDate.Value)\
+                // default orders the assets alphabetically
                 .OrderByDescending(a => a.AssetType.Name)
                 .ToListAsync();
 
+            // assets are sorted by date
             if (selectedAssetDateSorting)
             {
                 assets = assets
@@ -125,6 +123,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                     .ToList();
             }
 
+            // if a startdate is selected, it will return only the assets detected after this date
             if (selectedStartDate != null)
             {
                 DateTimeOffset utcStartDateTime = TimeZoneInfo.ConvertTimeToUtc((DateTime)selectedStartDate.Value);
@@ -133,6 +132,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                     .ToList();
             }
 
+            // if an enddate is selected, it will return only the assets detected before this date
             if (selectedEndDate != null)
             {
                 DateTimeOffset utcEndDateTime = TimeZoneInfo.ConvertTimeToUtc((DateTime)selectedEndDate.Value);
@@ -141,7 +141,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                     .ToList();
             }
 
-
+            // filter the assets on their flag status: false, true or all(true and false)
             if (selectedFlag == "false")
             {
                 assets = assets.Where(a => a.IsFlagged == false).ToList();
@@ -157,24 +157,13 @@ namespace AnomalyTrackerBackend.API.Controllers
                 assets = assets.ToList();
             }
 
+            // filter the assets on the types from the list
             if (assetTypes != null && assetTypes.Any())
             {
                 assets = assets
                     .Where(a => assetTypes.Contains(a.AssetType.Name))
                     .ToList();
             }
-
-            /*if (!selectedSeverity.IsNullOrEmpty())
-            {
-                if (Enum.TryParse<Severity>(selectedSeverity, out var parsedSeverity))
-                {
-                    anomalies = anomalies.Where(a => a.AnomalyType.Level == parsedSeverity).ToList();
-                }
-                else
-                {
-                    return BadRequest("Invalid severity level");
-                }
-            }*/
 
             if (assets == null)
             {

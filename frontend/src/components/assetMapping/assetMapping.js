@@ -9,7 +9,7 @@ import AssetPopup from '../assetPopup/assetPopup';
 import useGetAllAssets from '../../hooks/use_get_all_assets';
 import { FadeLoader } from 'react-spinners';
 import InfoButton from '../InfoButton/InfoButton';
-import { mapZoom, setHeatMap } from '../../store/store';
+import { mapZoom, setHeatMap, isUpdated } from '../../store/store';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { latLong } from '../../store/store';
 import announcement_beacon from '../../assets/images/announcement_beacon.png';
@@ -165,7 +165,7 @@ function UseMap({sortedAssets, zoom, latitudeLongitude, isHeatMap, handlePopupCl
     </MapContainer>
   );
 }
-
+// calculate the intensity for the heatmap
 function calculateIntensity(assets, center, radius) {
   const filteredAnomalies = assets.filter((asset) => {
     const distance = getDistanceFromLatLonInKm(center[0], center[1], asset.latitude, asset.longitude);
@@ -174,11 +174,12 @@ function calculateIntensity(assets, center, radius) {
 
   return filteredAnomalies.length + 200;
 };
-
+// function to calculate the distance between two points on the earth's surface using the Haversine formula
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1); // deg2rad below
   const dLon = deg2rad(lon2 - lon1);
+  // Haversine formula
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -186,11 +187,11 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   const distance = R * c; // Distance in km
   return distance;
 };
-
+// change degrees to radians
 function deg2rad(deg) {
   return deg * (Math.PI / 180);
 };
-
+// reset to the initial map settings
 function resetZoomAndLatLong({setZoom, setLatitudeLongitude}) {
   return () => {
     setLatitudeLongitude([50.8503, 4.3517]);
@@ -208,17 +209,25 @@ export default function SimpleMap() {
     handlePopupClose,
   } = useGetAllAssets();
   const heatmap = useRecoilValue(setHeatMap);
+  const [isUpdatedState, setIsUpdated] = useRecoilState(isUpdated);
 
   const isHeatMap = heatmap.isHeatMap;  
   const sortedAssets = [...assets].sort((a, b) => new Date(a.timeStamp) - new Date(b.timeStamp));
 
   const [isToastShown, setIsToastShown] = useState(false);
-
+  // when a new asset is added
   useEffect(() => {
     if (newAssetReceived) {
       toast.success("New Asset Available");
   }
   }, [newAssetReceived]);
+
+  useEffect(() => {
+    if (isUpdatedState) {
+      toast.success("Asset updated");
+      setIsUpdated(false);
+    }
+  }, [isUpdatedState]);
 
   return (
     <div className="map-container">

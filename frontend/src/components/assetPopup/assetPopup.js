@@ -8,6 +8,8 @@ import announcement_beacon from '../../assets/images/announcement_beacon.png';
 import kilometer_sign from '../../assets/images/kilometer_sign.png';
 import triangle_sign from '../../assets/images/triangle_sign.png';
 import traffic_light from '../../assets/images/traffic_light.png';
+import { useRecoilState } from 'recoil';
+import { isUpdated } from '../../store/store';
 
 const customStyles = {
   content: {
@@ -27,7 +29,7 @@ const customStyles = {
 };
 
 Modal.setAppElement(document.getElementById('root'));
-
+// change the timeformat
 function formatTime(timestamp) {
   const formattedTime = moment(timestamp).format('DD/MM/YYYY<br/>hh:mm:ss');
 
@@ -50,7 +52,7 @@ function Header({closeModal}) {
     </div>
   );
 }
-
+// left side of the pop-up with all the information
 function LeftSide({asset, address}) {
 
   return(
@@ -83,12 +85,11 @@ function LeftSide({asset, address}) {
     </div>
   );
 }
-
+// right side of the pop-up with the picture and buttons
 function RightSide({asset, isFlagged, setIsFlagged}) {
 
   const toggleIsFlagged = () => {
     setIsFlagged(!isFlagged);
-    console.log("Toggle is flagged works")
   };
 
   console.log(asset);
@@ -136,11 +137,12 @@ export default function AssetPopup({asset, closeModal}) {
 
   const [isFlagged, setIsFlagged] = useState(asset.isFlagged);
   const [address, setAddress] = useState("");
+  const [isUpdatedState, setIsUpdated] = useRecoilState(isUpdated);
 
   useEffect(() => {
     reverseGeocode(asset.latitude, asset.longitude);
   }, [asset.latitude, asset.longitude]);
-
+  // reverse geocode the latitude and longitude to get specific placenames
   function reverseGeocode(latitude, longitude) {
     const apiKey = "6fc6ed7cccae4c02a5d16e74a08c2c1b";
     const apiUrl = `https://api.opencagedata.com/geocode/v1/json?q=${latitude},+${longitude}&key=${apiKey}&language=en&pretty=1`
@@ -174,6 +176,10 @@ export default function AssetPopup({asset, closeModal}) {
         console.error("Error updating anomaly:", error);
       });
       
+    
+    if (isFlagged != asset.isFlagged) {
+      setIsUpdated(true);
+    }
     closeModal();
     setIsOpen(false);
   }

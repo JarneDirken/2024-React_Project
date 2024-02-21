@@ -36,13 +36,13 @@ export default function useGetAllAssets() {
 
     useEffect(() => {
         // Create a new WebSocket connection
-        const newSocket = new WebSocket("ws://3.231.168.163:8000/ws/assets");
+        const newSocket = new WebSocket("ws://54.82.124.29:8000/ws/assets");
 
         newSocket.onmessage = handleSocketMessage;
 
         newSocket.onclose = () => {
             // Reconnect on socket closure
-            setSocket(new WebSocket("ws://3.231.168.163:8000/ws/assets"));
+            setSocket(new WebSocket("ws://54.82.124.29:8000/ws/assets"));
         };
 
         // Set the new socket in the state

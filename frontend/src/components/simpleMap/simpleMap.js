@@ -9,7 +9,7 @@ import AnomalyPopup from '../anomalyPopup/anomalyPopup';
 import useGetAllAnomalies from '../../hooks/use_get_all_anomalies';
 import { FadeLoader } from 'react-spinners';
 import InfoButton from '../InfoButton/InfoButton';
-import { isModelOpen, mapZoom, newAnomaly, setHeatMap } from '../../store/store';
+import { isModelOpen, mapZoom, newAnomaly, setHeatMap, isUpdated } from '../../store/store';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { latLong } from '../../store/store';
 import vegetation_marker from '../../assets/images/vegetation_marker.png';
@@ -255,7 +255,7 @@ function UseMap({sortedAnomalies, zoom, latitudeLongitude, isHeatMap, handlePopu
     </MapContainer>
   );
 }
-
+// calculate the intensity for the heatmap
 function calculateIntensity(anomalies, center, radius) {
   const filteredAnomalies = anomalies.filter((anomaly) => {
     const distance = getDistanceFromLatLonInKm(center[0], center[1], anomaly.latitude, anomaly.longitude);
@@ -264,11 +264,12 @@ function calculateIntensity(anomalies, center, radius) {
 
   return filteredAnomalies.length + 200;
 };
-
+// function to calculate the distance between two points on the earth's surface using the Haversine formula
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   const R = 6371; // Radius of the earth in km
   const dLat = deg2rad(lat2 - lat1); // deg2rad below
   const dLon = deg2rad(lon2 - lon1);
+  // Haversine formula
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
@@ -277,10 +278,11 @@ function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
   return distance;
 };
 
+// change degrees to radians
 function deg2rad(deg) {
   return deg * (Math.PI / 180);
 };
-
+// reset to the initial map settings
 function resetZoomAndLatLong({setZoom, setLatitudeLongitude}) {
   return () => {
     setLatitudeLongitude([50.8503, 4.3517]);
@@ -299,17 +301,23 @@ export default function SimpleMap() {
   } = useGetAllAnomalies();
   const heatmap = useRecoilValue(setHeatMap);
   const isHeatMap = heatmap.isHeatMap;
+  const [isUpdatedState, setIsUpdated] = useRecoilState(isUpdated);
 
   const [isToastShown, setIsToastShown] = useState(false);
   const sortedAnomalies = [...anomalies].sort((a, b) => new Date(a.timeStamp) - new Date(b.timeStamp));
-  
+  // when a new anomaly is added
   useEffect(() => {
     if (newAnomalyReceived) {
       toast.success("New Anomaly Available");
   }
   }, [newAnomalyReceived]);
   
-  
+  useEffect(() => {
+    if (isUpdatedState) {
+      toast.success("Anomaly updated");
+      setIsUpdated(false);
+    }
+  }, [isUpdatedState]);
 
   return (
     <div className="map-container">

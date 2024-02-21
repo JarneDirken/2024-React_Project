@@ -28,6 +28,7 @@ function getSeverityColor(severityLevel) {
   }
 };
 
+// change the timeformat
 function formatTime(timestamp) {
   const formattedTime = moment(timestamp).format('DD/MM/YYYY<br/>hh:mm:ss');
 
@@ -45,11 +46,13 @@ function List({ anomalies }) {
   const [lowDropdownVisible, setLowDropdownVisible] = useState(false);
   const [dateDescending, setDateDescending] = useRecoilState(dateSorting);
 
+  // seperate the anomalies based on severitylevel
   const extremeAnomalies = anomalies.filter((anomaly) => anomaly.anomalyType.level === 'Extreme');
   const highAnomalies = anomalies.filter((anomaly) => anomaly.anomalyType.level === 'High');
   const mediumAnomalies = anomalies.filter((anomaly) => anomaly.anomalyType.level === 'Medium');
   const lowAnomalies = anomalies.filter((anomaly) => anomaly.anomalyType.level === 'Low');
 
+  // when clicking the dropdown the status, open or closed, becomes the opposite
   const toggleExtremeDropdown = () => {
     setExtremeDropdownVisible(!extremeDropdownVisible);
   };
@@ -65,7 +68,7 @@ function List({ anomalies }) {
   const toggleLowDropdown = () => {
     setLowDropdownVisible(!lowDropdownVisible);
   };
-
+  //change sorting order based on date
   const setSortOrder = () => {
     setDateDescending(!dateDescending);
   };
@@ -221,7 +224,7 @@ function List({ anomalies }) {
       </div></>
   );
 }
-
+// zooming in on anomaly when clicked in list
 function getCordinatesToMap({anomaly, setZoom, setLongLang}) {
   setZoom(13);
   setLongLang([anomaly.latitude, anomaly.longitude])

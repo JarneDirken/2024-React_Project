@@ -43,7 +43,7 @@ export default function Filterdropdown() {
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
+  // when clicked outside the dropdown, it closes
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {

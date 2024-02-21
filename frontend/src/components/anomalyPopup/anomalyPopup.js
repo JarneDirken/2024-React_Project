@@ -3,13 +3,14 @@ import React, { useEffect } from 'react';
 import Modal from 'react-modal';
 import moment from 'moment';
 import { useState } from 'react';
-import AnomalyTrackerApi from '../../apis/anomalytrackerapi';
 import vegetation_marker from '../../assets/images/vegetation_marker.png';
 import weather_marker from '../../assets/images/weather_marker.png';
 import track_deviation_marker from '../../assets/images/track_deviation_marker.png';
 import track_infrastructure_marker from '../../assets/images/track_infrastructure_marker.png';
 import tunnel_damage_marker from '../../assets/images/tunnel_damage_marker.png';
 import { useAnomalies } from '../../context/AnomaliesContext';
+import { useRecoilState } from 'recoil';
+import { isUpdated } from '../../store/store';
 
 
 
@@ -31,7 +32,7 @@ const customStyles = {
 };
 
 Modal.setAppElement(document.getElementById('root'));
-
+// give the severitylevel its corresponding color
 function getSeverityColor(severityLevel) {
   switch (severityLevel) {
     case 'Low':
@@ -46,7 +47,7 @@ function getSeverityColor(severityLevel) {
       return 'green';
   }
 };
-
+// change the timeformat
 function formatTime(timestamp) {
   const formattedTime = moment(timestamp).format('DD/MM/YYYY<br/>hh:mm:ss');
 
@@ -69,7 +70,7 @@ function Header({closeModal}) {
     </div>
   );
 }
-
+// left side of the pop-up with all the information
 function LeftSide({anomaly, remark, setRemark, address}) {
   const [isEditMode, setEditMode] = useState(false);
 
@@ -80,7 +81,7 @@ function LeftSide({anomaly, remark, setRemark, address}) {
   function saveRemark() {
     setEditMode(false)
   }
-
+  // fill the remark with the comment of the anomaly, if it doesn't have a comment, fill it with an empty string
   useEffect(() => {
     setRemark(anomaly.comment || "");
   }, [anomaly.comment, setRemark]);
@@ -140,7 +141,7 @@ function LeftSide({anomaly, remark, setRemark, address}) {
     </div>
   );
 }
-
+// right side of the pop-up with the picture and buttons
 function RightSide({anomaly, isFlagged, setIsFlagged, isSolved, setIsSolved}) {
 
   const toggleIsSolved = () => {
@@ -204,11 +205,14 @@ export default function AnomalyPopup({anomaly, closeModal}) {
   const [isFlagged, setIsFlagged] = useState(anomaly.isFlagged);
   const [remark, setRemark] = useState("");
   const [address, setAddress] = useState("");
+  const [isUpdatedState, setIsUpdated] = useRecoilState(isUpdated);
+  const initialRemark = anomaly.comment;
 
   useEffect(() => {
     reverseGeocode(anomaly.latitude, anomaly.longitude);
   }, [anomaly.latitude, anomaly.longitude]);
 
+  // reverse geocode the latitude and longitude to get specific placenames
   function reverseGeocode(latitude, longitude) {
     const apiKey = "6fc6ed7cccae4c02a5d16e74a08c2c1b";
     const apiUrl = `https://api.opencagedata.com/geocode/v1/json?q=${latitude},+${longitude}&key=${apiKey}&language=en&pretty=1`
@@ -228,7 +232,11 @@ export default function AnomalyPopup({anomaly, closeModal}) {
     }
   }, [modalIsOpen]);
 
+  // update the anomaly if anything has changed
   function closeModalAndParent() {
+    if (isSolved !== anomaly.isSolved || isFlagged !== anomaly.isFlagged || (remark !== initialRemark && initialRemark !== null)) {
+      setIsUpdated(true);
+    }
     updateAnomaly(anomaly.id, {
       IsSolved: isSolved,
       IsFlagged: isFlagged,

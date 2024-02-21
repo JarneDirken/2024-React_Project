@@ -30,6 +30,7 @@ data "aws_secretsmanager_secret" "tracktech-secret-arn" {
 ################################################# BACKEND #################################################################
 
 # AWS SERVICE BACKEND
+# All the backend services have their own container with dedicated ports
 resource "aws_ecs_service" "ecs_service_back" {
   name            = "tracktech-service-back"
   cluster         = aws_ecs_cluster.ecs_cluster.name
@@ -37,16 +38,18 @@ resource "aws_ecs_service" "ecs_service_back" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
+# Subnet and security group for the backend
   network_configuration {
     subnets          = module.tracktech-vpc.public_subnets
     security_groups  = [aws_security_group.tracktech-ecs-sg.id]
     assign_public_ip = true
   }
+  # we put a depends on here so we are sure that these things are made first and than the service of the backend
   depends_on = [aws_ecs_cluster.ecs_cluster, aws_ecs_task_definition.ecs_task_definition_back, aws_security_group.tracktech-ecs-sg, null_resource.wait_before_creating_service]
 
 }
 
-
+# The task defenition where the containers will be running in
 resource "aws_ecs_task_definition" "ecs_task_definition_back" {
   family                   = "tracktech-ecs-service"
   requires_compatibilities = ["FARGATE"]
@@ -55,6 +58,7 @@ resource "aws_ecs_task_definition" "ecs_task_definition_back" {
   cpu                      = 2048
   execution_role_arn       = data.aws_iam_role.ecs_task_execution_role.arn
 
+# specifications for the container and variables
   container_definitions = jsonencode([
     {
       "name": "tracktech-container-backend",
@@ -182,7 +186,7 @@ resource "aws_ecs_service" "ecs_service" {
   depends_on = [aws_ecs_cluster.ecs_cluster, aws_ecs_task_definition.ecs_task_definition_web, aws_security_group.tracktech-ecs-sg-web, null_resource.wait_before_creating_service]
 
 }
-
+# New task for the frontend
 resource "aws_ecs_task_definition" "ecs_task_definition_web" {
   family                   = "tracktech-ecs-service-web"
   requires_compatibilities = ["FARGATE"]

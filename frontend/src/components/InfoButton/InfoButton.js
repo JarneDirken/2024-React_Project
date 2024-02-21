@@ -50,6 +50,7 @@ function Header({closeModal}) {
   );
 }
 
+// Title changes dynamically based on which page is open
 function Title({name}){
   return (
     <div className='title'>
@@ -58,6 +59,7 @@ function Title({name}){
   );
 }
 
+// different body depending on the type or if it is the assetmap
 function Body({ type, isassetMap }) {
   return (
         <>

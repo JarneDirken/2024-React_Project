@@ -11,7 +11,7 @@ import announcement_beacon from '../../assets/images/announcement_beacon.png';
 import kilometer_sign from '../../assets/images/kilometer_sign.png';
 import triangle_sign from '../../assets/images/triangle_sign.png';
 import traffic_light from '../../assets/images/traffic_light.png';
-
+// change the timeformat
 function formatTime(timestamp) {
   const formattedTime = moment(timestamp).format('DD/MM/YYYY<br/>hh:mm:ss');
 
@@ -29,11 +29,12 @@ function List({ assets }) {
   const [lowDropdownVisible, setLowDropdownVisible] = useState(false);
   const [dateDescending, setDateDescending] = useRecoilState(assetDateSorting);
 
+  // seperate the assets based on type
   const stoplightassets = assets.filter((asset) => asset.assetType.name === 'Stoplight');
   const announcementassets = assets.filter((asset) => asset.assetType.name === 'Announcement beacon');
   const kilometerassets = assets.filter((asset) => asset.assetType.name === 'Kilometer pole');
   const triangularassets = assets.filter((asset) => asset.assetType.name === 'Triangular announcement sign');
-
+  // when clicking the dropdown the status, open or closed, becomes the opposite
   const toggleExtremeDropdown = () => {
     setExtremeDropdownVisible(!extremeDropdownVisible);
   };
@@ -49,7 +50,7 @@ function List({ assets }) {
   const toggleLowDropdown = () => {
     setLowDropdownVisible(!lowDropdownVisible);
   };
-
+  // change sorting order based on date
   const setSortOrder = () => {
     setDateDescending(!dateDescending);
   };
@@ -165,7 +166,7 @@ function List({ assets }) {
       </div></>
   );
 }
-
+// zooming in on asset when clicked in list
 function getCordinatesToMap({asset, setZoom, setLongLang}) {
   setZoom(13);
   setLongLang([asset.latitude, asset.longitude])

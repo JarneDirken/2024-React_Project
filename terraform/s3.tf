@@ -1,21 +1,22 @@
-resource "aws_s3_account_public_access_block" "bucket-1" {
+resource "aws_s3_account_public_access_block" "bucket-2" {
   block_public_acls   = false
   block_public_policy = false
 }
 
 resource "aws_s3_bucket_public_access_block" "tracktech-bucket-access" {
-  bucket = aws_s3_bucket.tracktech-bucket-1.bucket
+  bucket = aws_s3_bucket.tracktech-bucket-2.bucket
   block_public_acls       = false
   block_public_policy     = false
   ignore_public_acls      = false
   restrict_public_buckets = false
 }
 
-resource "aws_s3_bucket" "tracktech-bucket-1" {
-  bucket = "s3.tracktech-bucket.bucket-1"
+# Bucket for the images
+resource "aws_s3_bucket" "tracktech-bucket-2" {
+  bucket = "s3.tracktech-bucket.bucket-2"
 }
 resource "aws_s3_bucket_ownership_controls" "owner-control-s3-bucket" {
-  bucket = aws_s3_bucket.tracktech-bucket-1.id
+  bucket = aws_s3_bucket.tracktech-bucket-2.id
 
   rule {
     object_ownership = "BucketOwnerPreferred"
@@ -28,10 +29,11 @@ resource "aws_s3_bucket_acl" "tracktech-bucket-acl" {
     aws_s3_bucket_public_access_block.tracktech-bucket-access,
   ]
 
-  bucket = aws_s3_bucket.tracktech-bucket-1.id
+  bucket = aws_s3_bucket.tracktech-bucket-2.id
   acl    = "public-read-write"
 }
 
+# different folders for different types of AI detections
 variable "s3_folders" {
   type        = list(string)
   description = "The list of S3 folders to create"
@@ -40,18 +42,19 @@ variable "s3_folders" {
 
 resource "aws_s3_object" "images_folder" {
     count   = "${length(var.s3_folders)}"
-    bucket = aws_s3_bucket.tracktech-bucket-1.bucket
+    bucket = aws_s3_bucket.tracktech-bucket-2.bucket
     key    = "${var.s3_folders[count.index]}/"
 }
 
+# an access point for the s3 bucket
 resource "aws_s3_access_point" "tracktech-s3-access" {
-  bucket = aws_s3_bucket.tracktech-bucket-1.bucket
+  bucket = aws_s3_bucket.tracktech-bucket-2.bucket
   name   = "tracktech-s3-access"
 }
 
-# Voeg een levenscyclusregel toe aan de bucket om objecten naar Glacier Deep Archive te verplaatsen
+# Voegt een levenscyclusregel toe aan de bucket om objecten naar Glacier Deep Archive te verplaatsen
 resource "aws_s3_bucket_lifecycle_configuration" "glacier_bucket_lifecycle" {
-  bucket = aws_s3_bucket.tracktech-bucket-1.id
+  bucket = aws_s3_bucket.tracktech-bucket-2.id
 
   rule {
     id     = "rule-1"  # Geef een unieke ID op voor de regel

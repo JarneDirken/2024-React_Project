@@ -18,7 +18,7 @@ export default function AssetFilterdropdown() {
   const {
     assetTypes,
   } = useGetAllAssetTypes();
-
+  // when clicked outside the dropdown, it closes
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {

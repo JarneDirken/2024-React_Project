@@ -27,21 +27,27 @@ API_KEY_VALUE = os.getenv('api_key_fastapi')
 
 api_keys = [API_KEY_VALUE]
 
+# FastAPI instance
 app = FastAPI()
 api_key_header = APIKeyHeader(name=API_KEY_HEADER)
+
+# Set to keep track of WebSocket clients for anomalies and assets
 clientsAnomalies = set()
 clientsAssets = set()
 update_anomaly_event = asyncio.Event()
 update_asset_event = asyncio.Event()
 
+# Constants for file sizes
 KB = 5120
 MB = 5120 * KB
 
+# Supported file types for upload
 SUPPORTED_FILE_TYPES = {
     'image/png': 'png',
     'image/jpeg': 'jpg'
 }
 
+# Initialize AWS resources and bucket
 s3 = boto3.resource('s3',
                     aws_access_key_id=AWS_ACCESS_KEY_ID,
                     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
@@ -49,11 +55,13 @@ s3 = boto3.resource('s3',
                     )
 bucket = s3.Bucket(AWS_BUCKET)
 
+# Load data from a JSON file
 with open('lijnsecties.json', 'r') as file:
     data = json.load(file)
 
 results = data
 
+# Check if data is available for random selection
 if results and len(results) > 0:
     # Get a random index
     random_index = random.randint(0, len(results) - 1)
@@ -65,13 +73,14 @@ if results and len(results) > 0:
 else:
     print('The dataset is empty or does not have the expected structure.')
 
+# Create an AWS session
 session = boto3.Session(
     aws_access_key_id=AWS_ACCESS_KEY_ID,
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
     aws_session_token=AWS_SESSION_TOKEN
 )
 
-
+# Upload anomaly to s3 bucket and get link
 async def s3_uploadAnomaly(contents: bytes, key: str):
     folder_path = 'anomaly_images/'
     full_key = folder_path + key
@@ -91,7 +100,7 @@ async def s3_uploadAnomaly(contents: bytes, key: str):
 
     return file_url
 
-
+# Upload Asset to s3 bucket and get link
 async def s3_uploadAsset(contents: bytes, key: str):
     folder_path = 'asset_images/'
     full_key = folder_path + key
@@ -112,7 +121,7 @@ async def s3_uploadAsset(contents: bytes, key: str):
     return file_url
 
 
-# Function to insert the URL into PostgreSQL
+# Function to insert the URL into PostgreSQL Anomaly
 async def insert_url_to_postgresql_anomaly(file_name: str):
     try:
         # Replace with your PostgreSQL connection details
@@ -157,6 +166,7 @@ async def insert_url_to_postgresql_anomaly(file_name: str):
         logger.error(f"Error inserting URL into PostgreSQL: {e}")
 
 
+# Function to insert the URL into PostgreSQL Asset
 async def insert_url_to_postgresql_asset(file_name: str, asset_type_id: int):
     try:
         # Replace with your PostgreSQL connection details
@@ -199,7 +209,7 @@ async def insert_url_to_postgresql_asset(file_name: str, asset_type_id: int):
     except Exception as e:
         logger.error(f"Error inserting URL into PostgreSQL: {e}")
 
-
+# WebSocket endpoint for anomalies
 @app.websocket("/ws/anomalies")
 async def websocket_anomalies_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -216,7 +226,7 @@ async def websocket_anomalies_endpoint(websocket: WebSocket):
     finally:
         clientsAnomalies.remove(websocket)
 
-
+# WebSocket endpoint for assets
 @app.websocket("/ws/assets")
 async def websocket_assets_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -234,6 +244,7 @@ async def websocket_assets_endpoint(websocket: WebSocket):
         clientsAssets.remove(websocket)
 
 
+# Function to get API key from header
 def get_api_key(api_key_header: str = Security(api_key_header)) -> str:
     if api_key_header in api_keys:
         return api_key_header
@@ -247,7 +258,7 @@ def get_api_key(api_key_header: str = Security(api_key_header)) -> str:
 async def home(api_key: str = Security(get_api_key)):
     return {"Hello! :)"}
 
-
+# Upload anomaly endpoint
 @app.post('/uploadAnomaly')
 async def uploadAnomaly(file: UploadFile | None = None, api_key: str = Security(get_api_key)):
     if not file:
@@ -278,7 +289,7 @@ async def uploadAnomaly(file: UploadFile | None = None, api_key: str = Security(
     await insert_url_to_postgresql_anomaly(file_name=file_name)
     return {'file_name': file_name, 'file_url': file_url}
 
-
+# Upload asset endpoint
 @app.post('/uploadAsset')
 async def uploadAsset(file: UploadFile | None = None, api_key: str = Security(get_api_key), asset_type_id: int | None = None):
     if not file:
@@ -311,5 +322,6 @@ async def uploadAsset(file: UploadFile | None = None, api_key: str = Security(ge
 
 
 if __name__ == '__main__':
+    # Run FastAPI application using uvicorn
     uvicorn.run(app='main:app', reload=True,
                 host='0.0.0.0', port=8000, log_level="info")

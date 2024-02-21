@@ -36,8 +36,11 @@ class AnomalyTrackerApi {
             }
         });
     }
+    // get the anomalies based on the chosen filters
     static getAnomaliesFiltered(anomalyTypes, anomalyStatus, selectedFlag, selectedSeverities, selectedStartDate, selectedEndDate, selectedDateSorting) {
+        // make a string of all the selected types, so you only have to send the string
         const anomalyTypesString = anomalyTypes.join(',');
+        // make a string of all the selected severities, so you only have to send the string
         const selectedSeveritiesString = selectedSeverities.join(',');
         return axios.get(anomalyTrackerBaseUrl + `/filteranomaly?anomalyTypes=${anomalyTypesString}&anomalyStatus=${anomalyStatus}&selectedFlag=${selectedFlag}&selectedSeverities=${selectedSeveritiesString}&selectedStartDate=${selectedStartDate}&selectedEndDate=${selectedEndDate}&selectedDateSorting=${selectedDateSorting}`, {
             headers: {
@@ -84,7 +87,9 @@ class AnomalyTrackerApi {
             }
         })
     }    
+    // get the assets based on the chosen filters
     static getAssetsFiltered(assetTypes, selectedFlag, selectedStartDate, selectedEndDate, selectedAssetDateSorting) {
+        // make a string of all the selected types, so you only have to send the string
         const assetTypesString = assetTypes.join(',');
         return axios.get(anomalyTrackerAssetUrl + `/filterasset?assetTypes=${assetTypesString}&selectedFlag=${selectedFlag}&selectedStartDate=${selectedStartDate}&selectedEndDate=${selectedEndDate}&selectedAssetDateSorting=${selectedAssetDateSorting}`, {
             headers: {

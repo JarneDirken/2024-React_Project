@@ -38,13 +38,13 @@ export default function useGetAllAnomalies() {
 
     useEffect(() => {
         // Create a new WebSocket connection
-        const newSocket = new WebSocket("ws://3.231.168.163:8000/ws/anomalies");
+        const newSocket = new WebSocket("ws://54.82.124.29:8000/ws/anomalies");
 
         newSocket.onmessage = handleSocketMessage;
 
         newSocket.onclose = () => {
             // Reconnect on socket closure
-            setSocket(new WebSocket("ws://3.231.168.163:8000/ws/anomalies"));
+            setSocket(new WebSocket("ws://54.82.124.29:8000/ws/anomalies"));
         };
 
         // Set the new socket in the state

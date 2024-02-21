@@ -102,3 +102,8 @@ export const newAnomaly = atom({
     key: 'newAnomaly',
     default: false,
 });
+
+export const isUpdated = atom({
+    key: 'isUpdated',
+    default: false,
+});

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using AnomalyTrackerBackend.API.Dto;
 using AnomalyTrackerBackend.DAL;
@@ -90,19 +90,17 @@ namespace AnomalyTrackerBackend.API.Controllers
             DateTime? selectedStartDate = null, 
             DateTime? selectedEndDate = null)
         {
-
+            // make a list of the string that is reiceved by splitsing it based on the ','
             List<string> anomalyTypesList = !string.IsNullOrEmpty(anomalyTypes) ? anomalyTypes.Split(',').ToList() : null;
             List<string> selectedSeveritiesList = !string.IsNullOrEmpty(selectedSeverities) ? selectedSeverities.Split(',').ToList() : null;
 
             var anomalies = await _context.Anomalies
                 .Include(a => a.AnomalyType)
-                //.Where(a => a.IsSolved == anomalyStatus)
-                //.Where(a => a.IsFlagged == anomalyFlag)
-                //.Where(a => a.TimeStamp >= utcStartDateTime && a.TimeStamp <= utcEndDateTime)
-                //.Where(a => a.TimeStamp >= selectedStartDate.Value)\
+                // default orders the anomalies from highest level to lowest level
                 .OrderByDescending(a => a.AnomalyType.Level)
                 .ToListAsync();
 
+            // anomalies are sorted by date
             if (selectedDateSorting)
             {
                 anomalies = anomalies
@@ -116,6 +114,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                     .ToList();
             }
 
+            // if a startdate is selected, it will return only the anomalies detected after this date
             if (selectedStartDate != null)
             {
                 DateTimeOffset utcStartDateTime = TimeZoneInfo.ConvertTimeToUtc((DateTime)selectedStartDate.Value);
@@ -124,6 +123,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                     .ToList();
             }
 
+            // if an enddate is selected, it will return only the anomalies detected before this date
             if (selectedEndDate != null)
             {
                 DateTimeOffset utcEndDateTime = TimeZoneInfo.ConvertTimeToUtc((DateTime)selectedEndDate.Value);
@@ -132,6 +132,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                     .ToList();
             }
 
+            // filter the anomalies on their status: false, true or all(true and false)
             if (anomalyStatus == "false")
             {
                 anomalies = anomalies.Where(a => a.IsSolved == false).ToList();
@@ -147,6 +148,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                 anomalies = anomalies.ToList();
             }
 
+            // filter the anomalies on their flag status: false, true or all(true and false)
             if (selectedFlag == "false")
             {
                 anomalies = anomalies.Where(a => a.IsFlagged == false).ToList();
@@ -162,6 +164,7 @@ namespace AnomalyTrackerBackend.API.Controllers
                 anomalies = anomalies.ToList();
             }
 
+            // filter the anomalies on the types from the list
             if (anomalyTypes != null && anomalyTypes.Any())
             {
                 anomalies = anomalies
@@ -169,24 +172,13 @@ namespace AnomalyTrackerBackend.API.Controllers
                     .ToList();
             }
 
+            // filter the anomalies on the severities from the list
             if (selectedSeverities != null && selectedSeverities.Any())
             {
                 anomalies = anomalies
                     .Where(a => selectedSeverities.Contains(a.AnomalyType.Level.ToString()))
                     .ToList();
             }
-
-            /*if (!selectedSeverity.IsNullOrEmpty())
-            {
-                if (Enum.TryParse<Severity>(selectedSeverity, out var parsedSeverity))
-                {
-                    anomalies = anomalies.Where(a => a.AnomalyType.Level == parsedSeverity).ToList();
-                }
-                else
-                {
-                    return BadRequest("Invalid severity level");
-                }
-            }*/
 
             if (anomalies == null)
             {

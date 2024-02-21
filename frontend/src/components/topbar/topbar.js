@@ -28,6 +28,7 @@ export default function Topbar({isnormalMap, isassetMap}) {
     };
   }, []);
   
+  // change between normal map and heatmap
   const onClick = () => {
     setHeatmap({
         name: heatmap.isHeatMap ? 'normal map' : 'heat map',
