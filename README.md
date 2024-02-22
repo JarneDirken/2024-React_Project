@@ -109,3 +109,11 @@ To run the project in your local environment, follow these steps:
 ## 🍿 Video
 
 [https://www.youtube.com/watch?v=PX_gxbysHCE&t](https://www.youtube.com/watch?v=PX_gxbysHCE&t=3s)
+
+https://github.com/JarneDirken/2024-React_Project/assets/90832359/15bdbc98-3ab1-4f1f-bfe6-2b636f9fbbf5
+
+https://github.com/JarneDirken/2024-React_Project/assets/90832359/9567264e-8668-415a-a5e3-89e788d8d5d3
+
+https://github.com/JarneDirken/2024-React_Project/assets/90832359/397e5c8a-f139-407c-a042-8756c50c1479
+
+
